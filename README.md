@@ -29,7 +29,7 @@ Copy the two pieces into your user-level Claude Code directory (works in every p
 .claude/agents/context-me-reader.md ->  ~/.claude/agents/context-me-reader.md
 ```
 
-On Windows, `~/.claude` is `C:\Users\<you>\.claude`. Requires Python 3 (for `scripts/extract.py`). Start a new Claude Code session after copying.
+On Windows, `~/.claude` is `C:\Users\<you>\.claude`. Requires Python 3.8+ (for `scripts/extract.py`, standard library only). Start a new Claude Code session after copying.
 
 ## Run
 
@@ -44,7 +44,7 @@ It asks two things in one prompt — how many recent sessions to analyze (10 / 2
 ## What it reads — and what it doesn't
 
 - Reads your local session transcripts under `~/.claude/projects/`. Nothing is sent anywhere except into your own Claude Code session.
-- Keeps your prompts (as typed), screenshot counts, slash commands, URLs, file types, tool names, and CLI commands that were run. Drops all assistant output, tool results, and image bytes. Harness-injected text is stripped.
+- Keeps your prompts as typed (up to about 1,500 characters each; longer pastes are counted but cut), screenshot counts, slash commands, URLs, file types, tool names, and CLI commands that were run. Drops all assistant output, tool results, and image bytes. Harness-injected text is stripped.
 - The extracted data is written to a temporary folder and **deleted at the end of the run**.
 - Reader agents treat everything in the transcripts as untrusted evidence — they never follow instructions found inside old prompts or pasted text.
 - Reports quote your own words only as short evidence snippets, never pasted blocks, secrets, tokens, or connection strings.
@@ -89,8 +89,8 @@ Every entry has a vendor URL, a plain-English description, detection signals, th
 
 ## How it works
 
-1. `scripts/extract.py` shrinks N sessions (typically ~70 MB) to a few hundred KB of user-side signal, split into 3 shards. Zero model tokens.
-2. Three `context-me-reader` agents (on the model you chose) each read one shard against the allowlist and report findings with evidence — counted by distinct sessions, with *manual work* (pasting, screenshots, hand-run CLI) separated from mere *mentions*. Only manual work counts.
+1. `scripts/extract.py` shrinks N sessions (20 sessions: about 80 MB) to a few hundred KB of user-side signal, split into shards small enough for an agent to read in one call. Zero model tokens.
+2. A few `context-me-reader` agents (on the model you chose — usually 2–3, at most 6) read the shards against the allowlist and report findings with evidence — counted by distinct sessions, with *manual work* (pasting, screenshots, hand-run CLI) separated from mere *mentions*. Only manual work counts.
 3. Your main session merges the findings, applies an evidence threshold (≥3 sessions or 15%), drops anything not in the allowlist, and writes the report. It never pads to five.
 
 ## Repository layout
